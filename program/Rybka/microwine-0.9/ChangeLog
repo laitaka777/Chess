@@ -1,0 +1,118 @@
+Version 0.9, 2010-05-25:
+
+  * Release mainly for Rybka 4 support.
+  * Implement new WinAPI calls, most of them as stubs:
+    * GetVersion
+    * GetModuleHandleW
+    * GetStartupInfoW
+    * IsValidCodePage
+    * FindFirstFileA
+    * GetTimeZoneInformation
+    * WriteFileEx
+    * LoadLibraryA
+  * Expose new WinAPI calls to load-time linking (they were previously
+    available only via GetProcAddress):
+    * InitializeCriticalSectionAndSpinCount
+    * EncodePointer and DecodePointer
+  * WinAPI calls that used to be stubs and now are slightly less stubby:
+    * GetEnvironmentStringsW
+    * GetSystemTimeAsFileTime
+  * ReadFile now correctly handles lpNumberOfBytesRead as a 32-bit integer
+    instead of a 64-bit one (previously it'd write four zero bytes after
+    the return value in memory).
+  * CreateFileA handles the CREATE_NEW and CREATE_ALWAYS flags better
+    (needed for log output).
+  * GetFileType now returns that all file are disk files instead of character
+    devices (it seems the latter would confuse the C library a lot when dealing
+    with logging).
+  * Call the entry point from a new, separate function start_program(),
+    which is easier to set a break point on in the debugger.
+  * In the commented-out printf warning, use %lx instead of %x for the
+    (64-bit) offset.
+  * Fix a bug in the calculation of shared memory, so hash sizes larger than
+    2GB should work properly (tested up to 8GB).
+  * Run waitpid() before fork(), to reduce the number of zombie processes
+    hanging around when children restart.
+  * Hack yet more on command-line handling, as Rybka now uses the given command
+    line to feed its own UCI string.
+  * In the helpful error messages you get on shmem allocation failure (just 
+    before you crash), increase the padding from 8 kB to 256 kB, as Rybka 4
+    seems to want more shared memory.
+
+Version 0.8, 2008-08-07:
+
+  * Fix two bugs in VirtualQuery that would prevent Rybka 3 from using more
+    than one CPU (even though it would still report high speeds).
+
+Version 0.7, 2008-08-07:
+
+  * Add a (hacked) implementation of VirtualQuery, for Rybka 3 support.
+    Note that the hack for >2GB hash does not work for Rybka 3, nor have I
+    checked that it is indeed needed.
+  * Tweak command-line handling a bit to support executable names with spaces
+    in them, since Rybka 3 has a space in its default file name.
+
+Version 0.6, 2008-07-24:
+
+  * microwine no longer needs a hacked binutils to build on Linux; the start
+    address is replaced by modifying the default linker script on-the-fly
+    instead.
+  * You can now combine the Rybka and microwine executable into a single
+    binary, for easier processing by GUIs and the like. See the README for
+    more information.
+  * Updated shared memory configuration help for OS X (it's changed in 10.5).
+  * Changed OS X building to strip using the "strip" tool instead of the now
+    obsolete -s option.
+
+Version 0.5, 2007-10-14:
+
+ * Reworked the 4GB hash size workaround, by patching the Rybka
+   multiply-by-eight code (probably *sizeof(long long) or something similar)
+   to send correct parameters instead of second-guessing in
+   CreateFileMappingA. This should actually open up for 8GB and even 16GB
+   hash size, but whether Rybka can actually use so much hash efficiently
+   or stably is not known.
+ * Mac OS X port. This was surprisingly easy as soon as the OS X linker
+   (including Apple's not-entirely-standard implementation of the amd64 ABI)
+   and assembler were defeated. There is no huge page support; apart from
+   that, the port should be full-featured. Thanks go out to Rune Holm for
+   borrowing an account on an development machine, and helping out with some
+   of the Mac-specific problems.
+ * Update the README with the new features, and some other minor tweaks.
+
+Version 0.4, 2007-09-15:
+
+ * When shmget fails (usually due to too little shared memory), don't
+   just crash -- output a friendly error message and _then_ crash.
+ * Update the binutils recompilation instructions for binutils 2.18,
+   and fix what I believe was a typo in the address.
+ * In CreateFileMappingA, if Rybka asks for an allocation of 0 bytes, it's
+   probably intended to be an allocation of 4GB, so try to allocate that
+   instead of 0 bytes.
+
+Version 0.3, 2007-07-26:
+
+ * In CreateFileMapping, record the ID of the mapping, and install a
+   signal handler that cleans up all such mappings at abnormal end (ie.
+   from most common trappable signals). This should fix most issues where
+   Rybka would leak shared memory. Update README accordingly.
+ * Add a note that changing engine priority is not supported.
+ * Check the length of the file instead of hardcoding it as a #define.
+ * munmap and close the executable file after we're done with it.
+ * Drop freeshm from the distribution, as ipcrm does exactly the same just
+   as well, and is a standard tool.
+
+Version 0.2, 2007-07-13:
+
+ * Use calloc instead of malloc, since that matches HeapAlloc's behavior
+   better. Rybka expects some 512-element (?) table to be initialized 
+   to all zero, and when it's not, crashes occur at exit. From what I
+   can see, this should also fix the crashes that have happened runtime,
+   but this needs more testing. Update README accordingly.
+ * Implement ExitProcess, now that the process actually gets this far
+   without crashing.
+ * Add this changelog.
+
+Version 0.1, 2007-07-12:
+
+ * Initial version.

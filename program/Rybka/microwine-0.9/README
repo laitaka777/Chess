@@ -1,0 +1,106 @@
+0. Introduction
+
+This is "microwine" 0.9, a program that has but one purpose: To run 64-bit
+Rybka, which is a Windows program, under (64-bit) Linux. (Since 0.5, OS X is
+also experimentally supported.) It will probably never run anything else, and
+it will never grow beyond that, apart from possibly picking up support for
+other operating systems. If you're interested in seeing other 64-bit Windows
+applications running under Linux, please help out the WINE team
+(http://www.winehq.com/) in getting Wine64 to work.
+
+Of course, Rybka is not included with this distribution. You can get 2.2n2
+for free from www.rybkachess.com -- other versions are for sale only, but 65
+Euro is rather cheap for the world's strongest chess engine.
+
+While microwine works surprisingly well, note that it is best described as "an
+incredibly ugly hack". please don't use microwine for anything critical; it
+should not be needed to say that neither I, Vas nor Convekta can commercially
+support 64-bit Rybka running on anything but Windows.
+
+1. Usage
+
+Usage is relatively simple:
+
+  ./microwine Rybkav2.3.2a.mp.x64.exe
+
+and from there you can just use Rybka as any other UCI engine (on Mac OS X, use
+microwine.Darwin instead of microwine). Optionally, if you use a GUI that does
+not let you specify command-line arguments, you can create a combined binary,
+for instance like this:
+
+  cat microwine 'Deep Rybka 4 x64.exe' > 'Deep Rybka 4 x64'
+  chmod +x 'Deep Rybka 4 x64'
+  './Deep Rybka 4 x64'
+
+Be careful about what you do with the resulting binary, license-wise.
+
+Currently supported features are:
+
+  * SMP should work, and detect the right number of processors, as far as
+    I can see at full speed.
+  * Nalimov tablebases should work; just give the path like
+    "setoption name NalimovPath value /srv/tablebase" and it should be
+    able to cope.
+  * If you run Linux, and your kernel supports huge pages (CONFIG_HUGETLBFS=y),
+    microwine will automatically try to use huge pages for the hash table.
+    On my machine, this has been benchmarked to as much as almost 20% faster in
+    single-CPU tests with 1GB hash, but your mileage might vary. Note that to
+    use huge pages, you'll need to set them up first; try
+
+      echo 512 > /proc/sys/vm/nr_hugepages 
+
+    as root (allocating 512 hugepages = 1GB), and look at /proc/meminfo
+    to check "Hugepages_Free". When Rybka has started, the "free" number
+    should drop. Note that huge pages cannot be used for anything else
+    in your system, nor paged to disk, so when you're not using Rybka,
+    remember to reduce this number again.
+
+    The Rybka option “use large pages” has no effect under microwine -- Rybka
+    will think the OS doesn't support huge pages and report this, but it will
+    make no difference (huge pages will be tried no matter what the option
+    says).
+  * Rybka 2.3.2a under microwine actually supports even larger hash sizes than
+    Rybka on Windows (which crashes if you try to specify more than 2GB). If
+    you have tons of memory available, you may want to try 4GB, 8GB or even
+    16GB of hash. (The UCI string still says maximum 4096MB, though, which may
+    be a limiting factor depending on your GUI.) Rybka 4 can use up to
+    8GB of hash.
+  * You will need quite a bit of shared memory configured, as Rybka needs to
+    store its entire hash in shared memory. microwine will automatically alert
+    you if allocating shared memory fails, but if you are using a GUI you
+    might not see the error message.
+
+2. Bugs and limitations
+
+microwine has been tested with Rybka 1.0 beta, Rybka 2.2 winfinder MP, Rybka
+2.3.2a MP, Rybka 3 MP and Rybka 4 MP. Other versions may or may not work.
+Please observe the following bugs and limitations:
+
+  * Engine priority set via UCI is not considered; if you want to lower or 
+    increase Rybka's priority you will have to nice it yourself.
+  * OS X support is rather untested.
+  * It's generally hard to run microwine from a Windows/WINE GUI.
+
+3. Legalese
+
+Since microwine uses headers (but nothing else) from WINE, and WINE is
+released under the LGPL 2.1, it feels fair to release microwine under the
+same license:
+
+  microwine is free software; you can redistribute it and/or modify it under
+  the terms of the GNU Lesser General Public License as published by the
+  Free Software Foundation; either version 2.1 of the License, or (at
+  your option) any later version. 
+
+The LGPL 2.1 is included in the distribution. Note that the license does, to
+the best of my knowledge (and is not intended to) limit simply running
+microwine with Rybka in any way.
+
+4. Contact
+
+microwine is Copyright 2007-2010 Steinar H. Gunderson <sgunderson@bigfoot.com>;
+please contact me if you have any questions. Rybka is made by (and copyright)
+Vasik Rajlich, and distributed by Convekta; visit www.rybkachess.com for more
+information. Again, note that running Rybka under microwine probably will
+"void your warranty" in that neither Vas nor Convekta can support this
+combination.
